@@ -38,13 +38,13 @@ To train a model for millimeter-wave point cloud denoising:
 
 For example:
 
-    python train.py --version v0 --data-split 4 --model TG  --seq-length 12 
+    python train.py --version v0 --data-split 4 --model GT  --seq-length 12 
 
 Trains a GT-Millinoise model using dataset split #4 (Fold-4)
 
 To evaluate the model
 
-    python test.py --version v0 --data-split 4 --model TG --seq-length 12 --manual-restore 2 
+    python test.py --version v0 --data-split 4 --model GT --seq-length 12 --manual-restore 2 
 
   --manual-restore 2: loads best model in validation, --manual-restore 1 allows to choose a specific checkpoint
 
