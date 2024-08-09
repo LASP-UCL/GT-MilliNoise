@@ -316,10 +316,7 @@ def evaluate():
 
     saver = tf.train.Saver(max_to_keep=4, keep_checkpoint_every_n_hours = 5)
     
-    print(" Trainable paramenters: ")
-    for layer in params:
-    	print(layer)
-    
+
     # Create a session
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -396,6 +393,7 @@ def eval_one_epoch(sess,ops,test_writer, epoch):
     x = [i for i in range(1, nr_tests+1) if nr_tests % i == 0]
     if (BATCH_SIZE not in x): 
       print("[NOT LOADING ALL TEST DATA] - To test the full test data: select a batch size:", x)
+      exit()
 
     total_accuracy =0
     total_loss = 0
