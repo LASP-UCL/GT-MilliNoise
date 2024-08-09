@@ -59,7 +59,7 @@ To evaluate the model
 #### Available Models:
 | Model | Name | Description |     
 |---|---|---|
-| --model TG  | GT-Millinoise | Standart GT-Millinoise architecture |
+| --model GT  | GT-Millinoise | Standart GT-Millinoise architecture |
 | --model PointNet  | PoinNet | |
 | --model PointNet_2  | PointNet++ |  |
 | --model DGCNN  | Dynamci Graph CNN (DGCNN) |  |
