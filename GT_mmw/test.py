@@ -427,12 +427,10 @@ def eval_one_epoch(sess,ops,test_writer, epoch):
         input_point_clouds.append(point_clouds)
         input_labels.append(labels)
  
-    
       
       input_point_clouds = np.array(input_point_clouds)
       input_labels = np.array(input_labels)
       
-        
       
       # Send to model to be evaluated
       feed_dict = {ops['pointclouds_pl']: input_point_clouds, ops['labels_pl']: input_labels, ops['is_training_pl']: is_training}
@@ -446,79 +444,7 @@ def eval_one_epoch(sess,ops,test_writer, epoch):
       Tn = Tn + (true_negatives)
       Fn = Fn + (false_negatives)
 
-      # Calculate AUC-ROC
-      aux_pred = pred[0]
-      y_pred_proba = np.reshape(aux_pred, (aux_pred.shape[0]*aux_pred.shape[1], 2))
-      y_pred_proba = y_pred_proba[:,1]# probaibility of classe 1
-      y_true = input_labels
-      y_true = y_true[0]
-      y_true = np.reshape(y_true, (y_true.shape[0]*y_true.shape[1], 1))
-      if len(np.unique(y_true)) == 1:
-        #print("Only one class present in y_true [skip AUC-ROC]")
-        skip_count =  skip_count +1 
-      else: 
-        auc_roc = roc_auc_score(y_true, y_pred_proba)
-        total_auc_roc = total_auc_roc +auc_roc
-        
     
-      
-      
-      """ Visualize weights in terminal """
-      #print_weights(sess, params, 82)
-      
-      """ Data Analyze """
-      DATA_DIR = '/scratch/uceepdg/Bari_Denoising_Analyze/'+ args.model + '_' + args.version +'/'
-      if not os.path.exists(DATA_DIR): os.mkdir(DATA_DIR)
-      FPS_IDX_PATH = '/scratch/uceepdg/Fps_idxs_'+str(SEQ_LENGTH)+'_frames/'
-      if not os.path.exists(FPS_IDX_PATH): os.mkdir(FPS_IDX_PATH)
-
-
-      # Sampled evaluation of the point cloud
-      if DO_SAMPLED_ACC_FLAG == True :
-        # This is very heavy since the farthest_point_sampling is not optimzed
-        pc_to_sample = input_point_clouds[0]
-        pc_to_sample= np.reshape(pc_to_sample, (SEQ_LENGTH*NUM_POINTS,3  ) )
-        
-        #Save indices to file
-        indices = farthest_point_sampling(pc_to_sample,NUM_SAMPLED_POINTS  )
-        print("idx", idx)
-        indices = np.array(indices)
-        indices = indices[0]
-        np.save( FPS_IDX_PATH +'indices_' + str(idx) +'.npy', indices, )
-        
-        #load from file
-        loaded_indices = np.load(FPS_IDX_PATH +'indices_' + str(idx) +'.npy')
-
-        aux_pred = np.reshape(pred, (SEQ_LENGTH*NUM_POINTS,2  ) )
-        sampled_pred = aux_pred[loaded_indices, :]
-        aux_input_labels = input_labels[0]
-        aux_input_labels = np.reshape(aux_input_labels, (SEQ_LENGTH*NUM_POINTS,1 ) )
-        sampled_true_labels = aux_input_labels[loaded_indices, :]
-        sampled_true_labels = np.reshape(sampled_true_labels, (1,SEQ_LENGTH,int(NUM_SAMPLED_POINTS/SEQ_LENGTH),1 ) )
-        sampled_pred = np.reshape(sampled_pred, (1,SEQ_LENGTH,int(NUM_SAMPLED_POINTS/SEQ_LENGTH),2 ) )
-
-        sampled_accuracy, sampled_true_positives, sampled_false_positives, sampled_true_negatives, sampled_false_negatives = get_classification_metrics(sampled_pred, sampled_true_labels, BATCH_SIZE, SEQ_LENGTH,NUM_SAMPLED_POINTS/SEQ_LENGTH,context_frames=0) 
-        total_sampled_accuracy = total_sampled_accuracy+ sampled_accuracy
-      
-      if( idx%1000 ==0 and idx >0):
-        print("accuracy:", total_accuracy/(idx+1))
-        print("sampled_accuracy:", total_sampled_accuracy/(idx+1) )
-
-      """  Save the data in folder """
-      if( idx in id_seq_to_visualize):
-        tosave_input_pc = input_point_clouds[0]
-        tosave_input_labels = input_labels[0]     
-        tosave_pred = pred[0]
-        tosave_last_d_feat = end_points['last_d_feat']
-        tosave_last_d_feat = tosave_last_d_feat[0]
-           
-      
-      
-        np.save(DATA_DIR + 'point_cloud_seq_' + str(idx) +'.npy', tosave_input_pc)
-        np.save(DATA_DIR + 'prediction_seq_' + str(idx) +'.npy', tosave_pred)
-        np.save(DATA_DIR + 'last_d_feat_seq_' + str(idx) +'.npy', tosave_last_d_feat)
-        np.save(DATA_DIR + 'labels_' + str(idx) +'.npy', tosave_input_labels)
-
     mean_loss = total_loss/ num_batches
     mean_accuracy = total_accuracy/ num_batches
     mean_sampled_accuracy = total_sampled_accuracy/ num_batches
@@ -534,15 +460,8 @@ def eval_one_epoch(sess,ops,test_writer, epoch):
     print("Sampled Accuracy: ", mean_sampled_accuracy)
     print(' -- ')  
 
-    # Define the confusion matrix data
-    confusion_data = [[Tp, Fp], [Fn, Tn]]
-    # Plot the confusion matrix
-    labels = ['True Positive', 'False Positive', 'False Negative', 'True Negative']
-    fig = plt.figure(figsize=(5, 5))
-    sns.heatmap(confusion_data, annot=True, cmap="Blues", xticklabels=labels, yticklabels=labels, fmt='g')
-    fig.savefig(DATA_DIR+"/confusion_matrix" + ".png")
 
-    
+  
     
     # Write to File
     #log_string('****  %03d ****' % (epoch))
